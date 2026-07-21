@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="OSRS Stats" />
+<title>OSRS Stats</title>
+<style>
+  :root {
+    --bg: #14110c;
+    --card: #211c14;
+    --card2: #2b2419;
+    --line: #3a3122;
+    --text: #f1e9d6;
+    --muted: #ab9f86;
+    --gold: #c9a227;
+    --green: #4caf50;
+    --accent: #c76b2e;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { padding: env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 24px); max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 22px; text-align: center; margin: 18px 0 2px; }
+  h1 .m { filter: drop-shadow(0 1px 2px #000); }
+  .tag { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .tag a { color: var(--gold); }
+  input, select, button { font-size: 16px; font-family: inherit; }
+  .search { display: flex; gap: 8px; align-items: center; background: var(--card2);
+    border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .search input { flex: 1; background: transparent; border: none; color: var(--text); outline: none; }
+  .row { display: flex; gap: 8px; margin-top: 10px; }
+  select { flex: 1; background: var(--card2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 10px; padding: 10px; }
+  button { border: none; border-radius: 10px; padding: 11px 14px; font-weight: 600; color: #fff; }
+  .btn-primary { background: var(--accent); flex: 2; }
+  .btn-ghost { background: var(--card2); border: 1px solid var(--line); color: var(--text); flex: 1; }
+  button:active { opacity: .8; }
+  button:disabled { opacity: .4; }
+  .recent { margin-top: 12px; }
+  .recent-head { display: flex; justify-content: space-between; align-items: center;
+    color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .recent-head button { background: none; color: var(--gold); font-size: 12px; padding: 4px 2px; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0 2px; -webkit-overflow-scrolling: touch; }
+  .chip { background: var(--card2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 999px; padding: 7px 14px; white-space: nowrap; font-size: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 16px; margin-top: 16px; }
+  .card h2 { margin: 0; font-size: 19px; }
+  .card h3 { margin: 0 0 10px; font-size: 15px; color: var(--gold); }
+  .sub { color: var(--muted); font-size: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+  .stat { text-align: center; }
+  .stat .v { font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .green { color: var(--green); }
+  .bar-wrap { margin-top: 14px; }
+  .bar-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .bar { height: 9px; background: var(--card2); border-radius: 999px; overflow: hidden; margin: 6px 0 4px; }
+  .bar > div { height: 100%; background: var(--accent); border-radius: 999px; transition: width .3s; }
+  .bar.reached > div { background: var(--green); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { color: var(--muted); font-size: 11px; font-weight: 600; text-align: right; padding: 6px 0; }
+  th:first-child, td:first-child { text-align: left; }
+  td { padding: 8px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  td.g { color: var(--green); }
+  .scroll { overflow-x: auto; }
+  .msg { background: var(--card2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px; margin-top: 14px; font-size: 14px; }
+  .msg.err { border-color: #7a3b1e; }
+  .center { text-align: center; color: var(--muted); padding: 30px 10px; }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid var(--line);
+    border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .foot { text-align: center; color: var(--muted); font-size: 11px; margin-top: 24px; }
+  .foot a { color: var(--muted); }
+</style>
+</head>
+<body>
+  <h1><span class="m">🧙</span> OSRS Stats</h1>
+  <div class="tag">Live from the <a href="https://wiseoldman.net" target="_blank" rel="noopener">Wise Old Man</a> API</div>
+
+  <div class="search">
+    <span>🔎</span>
+    <input id="name" type="text" placeholder="Enter your RuneScape name…" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" />
+  </div>
+  <div class="row">
+    <select id="period">
+      <option value="day" selected>Day</option>
+      <option value="week">Week</option>
+      <option value="month">Month</option>
+      <option value="year">Year</option>
+    </select>
+    <button class="btn-ghost" id="target-btn">🎯 Target</button>
+  </div>
+  <div class="row">
+    <button class="btn-primary" id="lookup">Look up</button>
+    <button class="btn-ghost" id="update">Update</button>
+  </div>
+
+  <div class="recent" id="recent" hidden>
+    <div class="recent-head"><span>Recent</span><button id="clear-recent">Clear</button></div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div id="status"></div>
+  <div id="results"></div>
+
+  <div class="foot">Data © <a href="https://wiseoldman.net" target="_blank" rel="noopener">wiseoldman.net</a>. Not affiliated with Jagex.</div>
+
+<script>
+const API = "https://api.wiseoldman.net/v2";
+const $ = (id) => document.getElementById(id);
+const els = { name: $("name"), period: $("period"), status: $("status"), results: $("results"), recent: $("recent"), chips: $("chips") };
+
+// ---- helpers ----
+const SKILL_ORDER = ["attack","hitpoints","mining","strength","agility","smithing","defence","herblore","fishing","ranged","thieving","cooking","prayer","crafting","firemaking","magic","fletching","woodcutting","runecrafting","slayer","farming","construction","hunter"];
+const SPECIAL = {
+  runecrafting:"Runecraft", clue_scrolls_all:"Clue Scrolls (All)", clue_scrolls_beginner:"Clues (Beginner)",
+  clue_scrolls_easy:"Clues (Easy)", clue_scrolls_medium:"Clues (Medium)", clue_scrolls_hard:"Clues (Hard)",
+  clue_scrolls_elite:"Clues (Elite)", clue_scrolls_master:"Clues (Master)", last_man_standing:"Last Man Standing",
+  soul_wars_zeal:"Soul Wars Zeal", guardians_of_the_rift:"Guardians of the Rift", colosseum_glory:"Colosseum Glory",
+  chambers_of_xeric:"Chambers of Xeric", chambers_of_xeric_challenge_mode:"Chambers of Xeric (CM)",
+  theatre_of_blood:"Theatre of Blood", theatre_of_blood_hard_mode:"Theatre of Blood (HM)",
+  tombs_of_amascut:"Tombs of Amascut", tombs_of_amascut_expert:"Tombs of Amascut (Expert)",
+  tzkal_zuk:"TzKal-Zuk", tztok_jad:"TzTok-Jad", kril_tsutsaroth:"K'ril Tsutsaroth",
+};
+const pretty = (k) => SPECIAL[k] || k.split("_").map(w => w[0].toUpperCase()+w.slice(1)).join(" ");
+const grouped = (n) => (n ?? 0).toLocaleString("en-US");
+const rankD = (n) => (n == null || n < 0) ? "—" : grouped(n);
+const gainD = (n) => !n ? "—" : (n > 0 ? "+" : "−") + grouped(Math.abs(n));
+
+// ---- storage ----
+const RECENT_KEY = "osrs_recent", TARGET_KEY = "osrs_target";
+let recents = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+let target = parseInt(localStorage.getItem(TARGET_KEY) || "1000000", 10);
+
+function remember(n) {
+  recents = [n, ...recents.filter(x => x.toLowerCase() !== n.toLowerCase())].slice(0, 8);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(recents));
+  renderRecents();
+}
+function renderRecents() {
+  els.recent.hidden = recents.length === 0;
+  els.chips.innerHTML = "";
+  recents.forEach(n => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = n;
+    b.onclick = () => { els.name.value = n; run(); };
+    els.chips.appendChild(b);
+  });
+}
+
+// ---- api ----
+async function api(path, method = "GET") {
+  const res = await fetch(API + path, { method, headers: { "Accept": "application/json" } });
+  if (res.status === 404) throw new Error("notfound");
+  if (res.status === 429) throw new Error("Too many requests — wait a moment and try again.");
+  if (!res.ok) throw new Error("Wise Old Man error (HTTP " + res.status + ").");
+  return res.json();
+}
+const enc = (n) => encodeURIComponent(n.trim());
+
+// ---- render ----
+function setStatus(html) { els.status.innerHTML = html; }
+function statTable(headers, rows) {
+  let h = "<div class='scroll'><table><thead><tr><th></th>" + headers.map(x => "<th>"+x+"</th>").join("") + "</tr></thead><tbody>";
+  h += rows.map(r => "<tr><td>"+r.name+"</td>" + r.cells.map((c,i) => "<td class='"+(i===r.cells.length-1 && r.gain?"g":"")+"'>"+c+"</td>").join("") + "</tr>").join("");
+  return h + "</tbody></table></div>";
+}
+
+function render(player, gains, periodLabel) {
+  const s = player.latestSnapshot?.data || { skills:{}, bosses:{}, activities:{} };
+  const overall = s.skills.overall || {};
+  const oGain = gains?.data?.skills?.overall?.experience?.gained || 0;
+
+  // summary
+  let html = `<div class="card">
+    <h2>${player.displayName}</h2><span class="sub">${(player.type||"").replace(/^\w/,c=>c.toUpperCase())}</span>
+    <div class="grid">
+      <div class="stat"><div class="v">${player.combatLevel}</div><div class="l">Combat</div></div>
+      <div class="stat"><div class="v">${grouped(overall.level)}</div><div class="l">Total level</div></div>
+      <div class="stat"><div class="v">${grouped(overall.experience ?? player.exp)}</div><div class="l">Total XP</div></div>
+      <div class="stat"><div class="v">${(player.ehp||0).toFixed(1)}</div><div class="l">EHP</div></div>
+      <div class="stat"><div class="v">${(player.ehb||0).toFixed(1)}</div><div class="l">EHB</div></div>
+      <div class="stat"><div class="v ${oGain>0?"green":""}">${gainD(oGain)}</div><div class="l">${periodLabel} XP</div></div>
+    </div>`;
+
+  if (els.period.value === "day") {
+    const pct = target > 0 ? Math.min(1, Math.max(0, oGain) / target) : 0;
+    const reached = oGain >= target && target > 0;
+    html += `<div class="bar-wrap">
+      <div class="bar-top"><span>Daily target</span><span>${reached ? "✅ Reached" : grouped(Math.max(0,target-oGain))+" to go"}</span></div>
+      <div class="bar ${reached?"reached":""}"><div style="width:${(pct*100).toFixed(0)}%"></div></div>
+      <div class="sub">${grouped(Math.max(0,oGain))} / ${grouped(target)} XP</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // skills
+  const sk = SKILL_ORDER.filter(k => s.skills[k]).map(k => {
+    const d = s.skills[k], g = gains?.data?.skills?.[k]?.experience?.gained || 0;
+    return { name: pretty(k), gain: g>0, cells: [grouped(d.level), grouped(d.experience), rankD(d.rank), gainD(g)] };
+  });
+  html += `<div class="card"><h3>Skills</h3>${statTable(["Level","XP","Rank","Gained"], sk)}</div>`;
+
+  // bosses
+  const bosses = Object.values(s.bosses).filter(b => b.kills > 0).sort((a,b)=>b.kills-a.kills).map(b => {
+    const g = gains?.data?.bosses?.[b.metric]?.kills?.gained || 0;
+    return { name: pretty(b.metric), gain: g>0, cells: [grouped(b.kills), rankD(b.rank), gainD(g)] };
+  });
+  html += `<div class="card"><h3>Bosses</h3>${bosses.length ? statTable(["Kills","Rank","Gained"], bosses) : "<div class='sub'>No boss kills recorded.</div>"}</div>`;
+
+  // activities
+  const acts = Object.values(s.activities).filter(a => a.score > 0).sort((a,b)=>b.score-a.score).map(a => {
+    const g = gains?.data?.activities?.[a.metric]?.score?.gained || 0;
+    return { name: pretty(a.metric), gain: g>0, cells: [grouped(a.score), rankD(a.rank), gainD(g)] };
+  });
+  html += `<div class="card"><h3>Activities &amp; Clues</h3>${acts.length ? statTable(["Score","Rank","Gained"], acts) : "<div class='sub'>No activity scores recorded.</div>"}</div>`;
+
+  els.results.innerHTML = html;
+}
+
+// ---- actions ----
+async function run() {
+  const name = els.name.value.trim();
+  if (!name) return;
+  setStatus('<div class="center"><span class="spinner"></span></div>');
+  els.results.innerHTML = "";
+  try {
+    const period = els.period.value;
+    const [player, gains] = await Promise.all([
+      api("/players/" + enc(name)),
+      api("/players/" + enc(name) + "/gained?period=" + period),
+    ]);
+    setStatus("");
+    remember(player.displayName);
+    render(player, gains, period[0].toUpperCase()+period.slice(1));
+  } catch (e) {
+    if (e.message === "notfound") {
+      setStatus('<div class="msg err">Not tracked on Wise Old Man yet. Tap <b>Update</b> to add them from the hiscores.</div>');
+    } else {
+      setStatus('<div class="msg err">' + e.message + '</div>');
+    }
+  }
+}
+
+async function update() {
+  const name = els.name.value.trim();
+  if (!name) return;
+  setStatus('<div class="center"><span class="spinner"></span> Fetching from the hiscores…</div>');
+  try {
+    await api("/players/" + enc(name), "POST");
+    await run();
+  } catch (e) {
+    setStatus('<div class="msg err">' + (e.message === "notfound" ? "Couldn't find that name on the hiscores." : e.message) + '</div>');
+  }
+}
+
+// ---- events ----
+$("lookup").onclick = run;
+$("update").onclick = update;
+els.name.addEventListener("keydown", (e) => { if (e.key === "Enter") { els.name.blur(); run(); } });
+els.period.onchange = () => { if (els.results.innerHTML) run(); };
+$("clear-recent").onclick = () => { recents = []; localStorage.removeItem(RECENT_KEY); renderRecents(); };
+$("target-btn").onclick = () => {
+  const v = prompt("Daily XP target:", target);
+  if (v == null) return;
+  const n = parseInt(String(v).replace(/[^0-9]/g, ""), 10);
+  if (n > 0) { target = n; localStorage.setItem(TARGET_KEY, String(n)); if (els.results.innerHTML) run(); }
+};
+
+renderRecents();
+</script>
+</body>
+</html>
