@@ -33,6 +33,10 @@
   .tag { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 16px; }
   .tag a { color: var(--gold); }
   input, select, button { font-size: 16px; font-family: inherit; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tab { flex: 1; background: var(--card2); border: 1px solid var(--line); color: var(--muted); border-radius: 10px; padding: 10px; }
+  .tab.active { color: var(--text); border-color: var(--gold); }
+  .view.hidden { display: none; }
   .search { display: flex; gap: 8px; align-items: center; background: var(--card2);
     border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
   .search input { flex: 1; background: transparent; border: none; color: var(--text); outline: none; }
@@ -62,7 +66,8 @@
   .stat .l { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .green { color: var(--green); }
   .bar-wrap { margin-top: 14px; }
-  .bar-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .bar-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); gap: 8px; }
+  .bar-top b { color: var(--text); font-weight: 600; }
   .bar { height: 9px; background: var(--card2); border-radius: 999px; overflow: hidden; margin: 6px 0 4px; }
   .bar > div { height: 100%; background: var(--accent); border-radius: 999px; transition: width .3s; }
   .bar.reached > div { background: var(--green); }
@@ -71,6 +76,7 @@
   th:first-child, td:first-child { text-align: left; }
   td { padding: 8px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
   td.g { color: var(--green); }
+  .lead { color: var(--green); font-weight: 700; }
   .scroll { overflow-x: auto; }
   .msg { background: var(--card2); border: 1px solid var(--line); border-radius: 12px;
     padding: 12px; margin-top: 14px; font-size: 14px; }
@@ -85,6 +91,24 @@
     border: 1px solid var(--gold); border-radius: 12px; padding: 11px 12px; margin-top: 14px; font-size: 13px; }
   .install-tip.show { display: flex; }
   .install-tip button { background: none; color: var(--gold); padding: 4px; font-size: 18px; margin-left: auto; }
+  /* modal / sheet */
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
+    align-items: flex-end; justify-content: center; z-index: 50; }
+  .modal.show { display: flex; }
+  .sheet { background: var(--card); border: 1px solid var(--line); border-radius: 16px 16px 0 0;
+    width: 100%; max-width: 640px; padding: 18px 16px calc(env(safe-area-inset-bottom) + 20px); }
+  .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .sheet-head h3 { margin: 0; font-size: 17px; color: var(--gold); }
+  .sheet-head button { background: none; color: var(--muted); font-size: 20px; padding: 4px; }
+  .field { margin-top: 14px; }
+  .field > label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .field input, .field select { width: 100%; background: var(--card2); border: 1px solid var(--line);
+    color: var(--text); border-radius: 10px; padding: 12px; }
+  .seg { display: flex; gap: 6px; background: var(--card2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 4px; }
+  .seg button { flex: 1; background: transparent; color: var(--muted); padding: 9px; border-radius: 7px; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  .divider { height: 1px; background: var(--line); margin: 18px 0 4px; }
 </style>
 </head>
 <body>
@@ -97,43 +121,107 @@
     <button id="tip-close" aria-label="Dismiss">✕</button>
   </div>
 
-  <div class="search">
-    <span>🔎</span>
-    <input id="name" type="text" placeholder="Enter your RuneScape name…" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" />
-  </div>
-  <div class="row">
-    <select id="period">
-      <option value="day" selected>Day</option>
-      <option value="week">Week</option>
-      <option value="month">Month</option>
-      <option value="year">Year</option>
-    </select>
-    <button class="btn-ghost" id="target-btn">🎯 Target</button>
-  </div>
-  <div class="row">
-    <button class="btn-primary" id="lookup">Look up</button>
-    <button class="btn-ghost" id="update">Update</button>
+  <div class="tabs">
+    <button class="tab active" id="tab-player">Player</button>
+    <button class="tab" id="tab-compare">Compare</button>
   </div>
 
-  <div class="recent" id="recent" hidden>
-    <div class="recent-head"><span>Recent</span><button id="clear-recent">Clear</button></div>
-    <div class="chips" id="chips"></div>
+  <!-- PLAYER VIEW -->
+  <div class="view" id="view-player">
+    <div class="search">
+      <span>🔎</span>
+      <input id="name" type="text" placeholder="Enter your RuneScape name…" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" />
+    </div>
+    <div class="row">
+      <select id="period">
+        <option value="day" selected>Day</option>
+        <option value="week">Week</option>
+        <option value="month">Month</option>
+        <option value="year">Year</option>
+      </select>
+      <button class="btn-ghost" id="goals-btn">🎯 Goals</button>
+    </div>
+    <div class="row">
+      <button class="btn-primary" id="lookup">Look up</button>
+      <button class="btn-ghost" id="update">Update</button>
+    </div>
+
+    <div class="recent" id="recent" hidden>
+      <div class="recent-head"><span>Recent</span><button id="clear-recent">Clear</button></div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div id="status"></div>
+    <div id="results"></div>
   </div>
 
-  <div id="status"></div>
-  <div id="results"></div>
+  <!-- COMPARE VIEW -->
+  <div class="view hidden" id="view-compare">
+    <div class="search">
+      <span>🅰️</span>
+      <input id="cname1" type="text" placeholder="First RuneScape name…" autocapitalize="off" autocorrect="off" spellcheck="false" />
+    </div>
+    <div class="search" style="margin-top:10px">
+      <span>🅱️</span>
+      <input id="cname2" type="text" placeholder="Second RuneScape name…" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" />
+    </div>
+    <div class="row">
+      <button class="btn-primary" id="compare-btn">Compare</button>
+    </div>
+    <div id="cstatus"></div>
+    <div id="cresults"></div>
+  </div>
 
   <div class="foot">Data © <a href="https://wiseoldman.net" target="_blank" rel="noopener">wiseoldman.net</a>. Not affiliated with Jagex.</div>
+
+  <!-- GOALS SHEET -->
+  <div class="modal" id="goals-modal">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3>🎯 Goals</h3>
+        <button id="goals-close" aria-label="Close">✕</button>
+      </div>
+
+      <div class="field">
+        <label>Daily XP goal (progress for today)</label>
+        <input id="g-daily" type="text" inputmode="numeric" placeholder="e.g. 1000000" />
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Skill / total goal</label>
+        <select id="g-metric">
+          <option value="">— none —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Goal type</label>
+        <div class="seg" id="g-seg">
+          <button id="seg-level" data-type="level" class="on">Level</button>
+          <button id="seg-xp" data-type="xp">XP</button>
+        </div>
+      </div>
+      <div class="field">
+        <label id="g-value-label">Target level (1–99)</label>
+        <input id="g-value" type="text" inputmode="numeric" placeholder="99" />
+      </div>
+
+      <div class="row">
+        <button class="btn-primary" id="goals-save">Save goals</button>
+      </div>
+    </div>
+  </div>
 
 <script>
 const API = "https://api.wiseoldman.net/v2";
 const $ = (id) => document.getElementById(id);
 const els = { name: $("name"), period: $("period"), status: $("status"), results: $("results"), recent: $("recent"), chips: $("chips") };
 
-// ---- helpers ----
+// ---- constants / helpers ----
 const SKILL_ORDER = ["attack","hitpoints","mining","strength","agility","smithing","defence","herblore","fishing","ranged","thieving","cooking","prayer","crafting","firemaking","magic","fletching","woodcutting","runecrafting","slayer","farming","construction","hunter"];
 const SPECIAL = {
-  runecrafting:"Runecraft", clue_scrolls_all:"Clue Scrolls (All)", clue_scrolls_beginner:"Clues (Beginner)",
+  runecrafting:"Runecraft", overall:"Overall", clue_scrolls_all:"Clue Scrolls (All)", clue_scrolls_beginner:"Clues (Beginner)",
   clue_scrolls_easy:"Clues (Easy)", clue_scrolls_medium:"Clues (Medium)", clue_scrolls_hard:"Clues (Hard)",
   clue_scrolls_elite:"Clues (Elite)", clue_scrolls_master:"Clues (Master)", last_man_standing:"Last Man Standing",
   soul_wars_zeal:"Soul Wars Zeal", guardians_of_the_rift:"Guardians of the Rift", colosseum_glory:"Colosseum Glory",
@@ -146,11 +234,28 @@ const pretty = (k) => SPECIAL[k] || k.split("_").map(w => w[0].toUpperCase()+w.s
 const grouped = (n) => (n ?? 0).toLocaleString("en-US");
 const rankD = (n) => (n == null || n < 0) ? "—" : grouped(n);
 const gainD = (n) => !n ? "—" : (n > 0 ? "+" : "−") + grouped(Math.abs(n));
+const shortXp = (n) => { n = n||0; return n>=1e6 ? (n/1e6).toFixed(1)+"M" : n>=1e3 ? Math.round(n/1e3)+"K" : ""+n; };
+
+// OSRS XP table: xp required for each level (index = level, 1..99)
+const XP_TABLE = (() => {
+  const t = [0, 0]; let points = 0;
+  for (let lvl = 1; lvl < 99; lvl++) {
+    points += Math.floor(lvl + 300 * Math.pow(2, lvl / 7));
+    t[lvl + 1] = Math.floor(points / 4);
+  }
+  return t;
+})();
+const xpForLevel = (l) => XP_TABLE[Math.max(1, Math.min(99, l))] || 0;
 
 // ---- storage ----
-const RECENT_KEY = "osrs_recent", TARGET_KEY = "osrs_target";
+const RECENT_KEY = "osrs_recent", TARGET_KEY = "osrs_target", GOAL_KEY = "osrs_goal";
 let recents = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
 let target = parseInt(localStorage.getItem(TARGET_KEY) || "1000000", 10);
+let goal = JSON.parse(localStorage.getItem(GOAL_KEY) || "null"); // {metric,type:'level'|'xp',value}
+let goalType = (goal && goal.type) || "level";
+
+// remember the last render so goal edits re-render without a refetch
+let lastPlayer = null, lastGains = null, lastLabel = "";
 
 function remember(n) {
   recents = [n, ...recents.filter(x => x.toLowerCase() !== n.toLowerCase())].slice(0, 8);
@@ -178,9 +283,8 @@ async function api(path, method = "GET") {
 }
 const enc = (n) => encodeURIComponent(n.trim());
 
-// Build the gained URL. "Day" uses a custom start/end range for the current
-// calendar day (local midnight → now) to match WOM's daily XP graph, instead of
-// the rolling-24h period=day. Other periods use the rolling window.
+// "Day" = current calendar day (local midnight → now) to match WOM's daily XP
+// graph; other periods use the rolling window.
 function gainedUrl(name, period) {
   const base = "/players/" + enc(name) + "/gained";
   if (period === "day") {
@@ -191,7 +295,7 @@ function gainedUrl(name, period) {
   return base + "?period=" + period;
 }
 
-// ---- render ----
+// ---- render: single player ----
 function setStatus(html) { els.status.innerHTML = html; }
 function statTable(headers, rows) {
   let h = "<div class='scroll'><table><thead><tr><th></th>" + headers.map(x => "<th>"+x+"</th>").join("") + "</tr></thead><tbody>";
@@ -199,12 +303,35 @@ function statTable(headers, rows) {
   return h + "</tbody></table></div>";
 }
 
+function goalBar(s) {
+  if (!goal || !goal.value) return "";
+  const d = s.skills[goal.metric];
+  if (!d) return "";
+  const targetXP = goal.type === "level" ? xpForLevel(goal.value) : goal.value;
+  if (!targetXP) return "";
+  const cur = d.experience || 0;
+  const pct = Math.min(1, cur / targetXP);
+  const reached = cur >= targetXP;
+  const title = goal.type === "level"
+    ? `Goal · <b>${pretty(goal.metric)} lvl ${goal.value}</b>`
+    : `Goal · <b>${shortXp(goal.value)} ${pretty(goal.metric)} XP</b>`;
+  const right = reached ? "✅ Reached"
+    : (goal.type === "level"
+        ? `lvl ${d.level} → ${goal.value} · ${grouped(targetXP - cur)} to go`
+        : `${grouped(targetXP - cur)} XP to go`);
+  return `<div class="bar-wrap">
+    <div class="bar-top"><span>${title}</span><span>${right}</span></div>
+    <div class="bar ${reached?"reached":""}"><div style="width:${(pct*100).toFixed(1)}%"></div></div>
+    <div class="sub">${grouped(cur)} / ${grouped(targetXP)} XP · ${(pct*100).toFixed(1)}%</div>
+  </div>`;
+}
+
 function render(player, gains, periodLabel) {
+  lastPlayer = player; lastGains = gains; lastLabel = periodLabel;
   const s = player.latestSnapshot?.data || { skills:{}, bosses:{}, activities:{} };
   const overall = s.skills.overall || {};
   const oGain = gains?.data?.skills?.overall?.experience?.gained || 0;
 
-  // summary
   let html = `<div class="card">
     <h2>${player.displayName}</h2><span class="sub">${(player.type||"").replace(/^\w/,c=>c.toUpperCase())}</span>
     <div class="grid">
@@ -216,15 +343,16 @@ function render(player, gains, periodLabel) {
       <div class="stat"><div class="v ${oGain>0?"green":""}">${gainD(oGain)}</div><div class="l">${periodLabel} XP</div></div>
     </div>`;
 
-  if (els.period.value === "day") {
-    const pct = target > 0 ? Math.min(1, Math.max(0, oGain) / target) : 0;
-    const reached = oGain >= target && target > 0;
+  if (els.period.value === "day" && target > 0) {
+    const pct = Math.min(1, Math.max(0, oGain) / target);
+    const reached = oGain >= target;
     html += `<div class="bar-wrap">
-      <div class="bar-top"><span>Daily target</span><span>${reached ? "✅ Reached" : grouped(Math.max(0,target-oGain))+" to go"}</span></div>
+      <div class="bar-top"><span>Daily XP goal</span><span>${reached ? "✅ Reached" : grouped(Math.max(0,target-oGain))+" to go"}</span></div>
       <div class="bar ${reached?"reached":""}"><div style="width:${(pct*100).toFixed(0)}%"></div></div>
       <div class="sub">${grouped(Math.max(0,oGain))} / ${grouped(target)} XP · today since midnight</div>
     </div>`;
   }
+  html += goalBar(s);
   html += `</div>`;
 
   // skills
@@ -249,6 +377,45 @@ function render(player, gains, periodLabel) {
   html += `<div class="card"><h3>Activities &amp; Clues</h3>${acts.length ? statTable(["Score","Rank","Gained"], acts) : "<div class='sub'>No activity scores recorded.</div>"}</div>`;
 
   els.results.innerHTML = html;
+}
+
+// ---- render: compare ----
+function setC(html) { $("cstatus").innerHTML = html; }
+function cmpRow(label, a, b, fmt) {
+  const f = fmt || grouped;
+  const aCls = a > b ? "lead" : "", bCls = b > a ? "lead" : "";
+  return `<tr><td>${label}</td><td class="${aCls}">${f(a)}</td><td class="${bCls}">${f(b)}</td></tr>`;
+}
+function renderCompare(p1, p2) {
+  const s1 = p1.latestSnapshot?.data?.skills || {};
+  const s2 = p2.latestSnapshot?.data?.skills || {};
+  const o1 = s1.overall || {}, o2 = s2.overall || {};
+  const nm = (p) => p.displayName;
+
+  let html = `<div class="card">
+    <h3>Overview</h3>
+    <div class="scroll"><table><thead><tr><th></th><th>${nm(p1)}</th><th>${nm(p2)}</th></tr></thead><tbody>
+      ${cmpRow("Combat", p1.combatLevel, p2.combatLevel, x=>""+x)}
+      ${cmpRow("Total level", o1.level||0, o2.level||0)}
+      ${cmpRow("Total XP", o1.experience ?? p1.exp ?? 0, o2.experience ?? p2.exp ?? 0)}
+      ${cmpRow("EHP", p1.ehp||0, p2.ehp||0, x=>x.toFixed(1))}
+      ${cmpRow("EHB", p1.ehb||0, p2.ehb||0, x=>x.toFixed(1))}
+    </tbody></table></div>
+  </div>`;
+
+  const skillRows = ["overall", ...SKILL_ORDER].map(k => {
+    const a = s1[k]?.experience || 0, b = s2[k]?.experience || 0;
+    return cmpRow(pretty(k), a, b, shortXp);
+  }).join("");
+  html += `<div class="card">
+    <h3>Skills — XP</h3>
+    <div class="scroll"><table><thead><tr><th></th><th>${nm(p1)}</th><th>${nm(p2)}</th></tr></thead><tbody>
+      ${skillRows}
+    </tbody></table></div>
+    <div class="sub" style="margin-top:8px">Higher value shown in green.</div>
+  </div>`;
+
+  $("cresults").innerHTML = html;
 }
 
 // ---- actions ----
@@ -287,19 +454,92 @@ async function update() {
   }
 }
 
+async function compare() {
+  const n1 = $("cname1").value.trim(), n2 = $("cname2").value.trim();
+  if (!n1 || !n2) { setC('<div class="msg">Enter two names to compare.</div>'); return; }
+  setC('<div class="center"><span class="spinner"></span></div>');
+  $("cresults").innerHTML = "";
+  try {
+    const [p1, p2] = await Promise.all([api("/players/" + enc(n1)), api("/players/" + enc(n2))]);
+    setC("");
+    remember(p1.displayName); remember(p2.displayName);
+    renderCompare(p1, p2);
+  } catch (e) {
+    setC('<div class="msg err">' + (e.message === "notfound"
+      ? "One of those players isn't tracked on Wise Old Man yet. Look them up on the Player tab and tap Update first."
+      : e.message) + '</div>');
+  }
+}
+
+// ---- goals sheet ----
+function buildGoalMetricOptions() {
+  const sel = $("g-metric");
+  ["overall", ...SKILL_ORDER].forEach(k => {
+    const o = document.createElement("option");
+    o.value = k; o.textContent = pretty(k);
+    sel.appendChild(o);
+  });
+}
+function updateSeg() {
+  $("seg-level").classList.toggle("on", goalType === "level");
+  $("seg-xp").classList.toggle("on", goalType === "xp");
+  $("g-value-label").textContent = goalType === "level" ? "Target level (1–99)" : "Target XP";
+  $("g-value").placeholder = goalType === "level" ? "99" : "13034431";
+}
+function openGoals() {
+  $("g-daily").value = target || "";
+  $("g-metric").value = goal ? goal.metric : "";
+  goalType = (goal && goal.type) || "level";
+  $("g-value").value = goal ? goal.value : "";
+  updateSeg();
+  $("goals-modal").classList.add("show");
+}
+function saveGoals() {
+  const d = parseInt(String($("g-daily").value).replace(/[^0-9]/g, ""), 10);
+  if (d > 0) { target = d; localStorage.setItem(TARGET_KEY, String(d)); }
+  const m = $("g-metric").value;
+  const raw = parseInt(String($("g-value").value).replace(/[^0-9]/g, ""), 10);
+  if (!m || !raw) {
+    goal = null; localStorage.removeItem(GOAL_KEY);
+  } else {
+    let v = raw;
+    if (goalType === "level") v = Math.max(1, Math.min(99, v));
+    goal = { metric: m, type: goalType, value: v };
+    localStorage.setItem(GOAL_KEY, JSON.stringify(goal));
+  }
+  $("goals-modal").classList.remove("show");
+  if (lastPlayer) render(lastPlayer, lastGains, lastLabel);
+}
+
+// ---- tabs ----
+function showTab(which) {
+  const player = which === "player";
+  $("tab-player").classList.toggle("active", player);
+  $("tab-compare").classList.toggle("active", !player);
+  $("view-player").classList.toggle("hidden", !player);
+  $("view-compare").classList.toggle("hidden", player);
+}
+
 // ---- events ----
 $("lookup").onclick = run;
 $("update").onclick = update;
 els.name.addEventListener("keydown", (e) => { if (e.key === "Enter") { els.name.blur(); run(); } });
 els.period.onchange = () => { if (els.results.innerHTML) run(); };
 $("clear-recent").onclick = () => { recents = []; localStorage.removeItem(RECENT_KEY); renderRecents(); };
-$("target-btn").onclick = () => {
-  const v = prompt("Daily XP target:", target);
-  if (v == null) return;
-  const n = parseInt(String(v).replace(/[^0-9]/g, ""), 10);
-  if (n > 0) { target = n; localStorage.setItem(TARGET_KEY, String(n)); if (els.results.innerHTML) run(); }
-};
 
+$("tab-player").onclick = () => showTab("player");
+$("tab-compare").onclick = () => showTab("compare");
+$("compare-btn").onclick = compare;
+$("cname2").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.target.blur(); compare(); } });
+
+$("goals-btn").onclick = openGoals;
+$("goals-close").onclick = () => $("goals-modal").classList.remove("show");
+$("goals-modal").addEventListener("click", (e) => { if (e.target.id === "goals-modal") $("goals-modal").classList.remove("show"); });
+$("goals-save").onclick = saveGoals;
+$("seg-level").onclick = () => { goalType = "level"; updateSeg(); };
+$("seg-xp").onclick = () => { goalType = "xp"; updateSeg(); };
+
+buildGoalMetricOptions();
 renderRecents();
 
 // ---- PWA: service worker + iOS install hint ----
