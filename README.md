@@ -20,7 +20,8 @@ launches full-screen like a real app, with its own icon and offline app-shell.
 ### Host it with GitHub Pages
 
 1. On GitHub, open **Settings → Pages**.
-2. **Source:** *Deploy from a branch*. **Branch:** `main`, **Folder:** `/docs`. Save.
+2. **Source:** *Deploy from a branch*. **Branch:** the repo's default branch,
+   **Folder:** `/docs`. Save.
 3. Wait ~1 minute; your app is live at `https://<user>.github.io/app-static/`.
 4. On your iPhone, open that URL in Safari → **Share** → **Add to Home Screen**.
 
