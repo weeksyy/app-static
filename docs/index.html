@@ -4,8 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="OSRS Stats" />
+<meta name="theme-color" content="#14110c" />
 <title>OSRS Stats</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" />
 <style>
   :root {
     --bg: #14110c;
@@ -75,11 +81,21 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .foot { text-align: center; color: var(--muted); font-size: 11px; margin-top: 24px; }
   .foot a { color: var(--muted); }
+  .install-tip { display: none; align-items: center; gap: 10px; background: var(--card2);
+    border: 1px solid var(--gold); border-radius: 12px; padding: 11px 12px; margin-top: 14px; font-size: 13px; }
+  .install-tip.show { display: flex; }
+  .install-tip button { background: none; color: var(--gold); padding: 4px; font-size: 18px; margin-left: auto; }
 </style>
 </head>
 <body>
   <h1><span class="m">🧙</span> OSRS Stats</h1>
   <div class="tag">Live from the <a href="https://wiseoldman.net" target="_blank" rel="noopener">Wise Old Man</a> API</div>
+
+  <div class="install-tip" id="install-tip">
+    <span>📲</span>
+    <span>Install: tap <b>Share</b>, then <b>Add to Home Screen</b>.</span>
+    <button id="tip-close" aria-label="Dismiss">✕</button>
+  </div>
 
   <div class="search">
     <span>🔎</span>
@@ -272,6 +288,23 @@ $("target-btn").onclick = () => {
 };
 
 renderRecents();
+
+// ---- PWA: service worker + iOS install hint ----
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+(function installHint() {
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const dismissed = localStorage.getItem("osrs_tip_dismissed") === "1";
+  if (isIOS && !standalone && !dismissed) {
+    const tip = $("install-tip");
+    tip.classList.add("show");
+    $("tip-close").onclick = () => { tip.classList.remove("show"); localStorage.setItem("osrs_tip_dismissed", "1"); };
+  }
+})();
 </script>
 </body>
 </html>

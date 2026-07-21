@@ -1,9 +1,33 @@
-# OSRS Stats — Wise Old Man iOS app
+# OSRS Stats — Wise Old Man
 
-A small SwiftUI iPhone/iPad app that looks up an Old School RuneScape player and
-shows their **current stats**, **XP gained over a day** (or week/month/year), and
-**boss kill counts & activity scores** — all from the
-[Wise Old Man](https://wiseoldman.net) API, so you don't have to open the website.
+Look up an Old School RuneScape player and see their **current stats**, **XP
+gained over a day** (or week/month/year), and **boss kill counts & activity
+scores** — all from the [Wise Old Man](https://wiseoldman.net) API, so you don't
+have to open the website.
+
+There are two front-ends in this repo:
+
+- **`docs/`** — an installable web app (works on any phone with no Mac needed).
+- **`WiseOldManStats/` + `XPWidget/`** — a native SwiftUI iOS app with a Home
+  Screen widget (requires a Mac + Xcode to build).
+
+## Installable web app (no Mac required)
+
+The `docs/` folder is a self-contained web app that calls the Wise Old Man API
+directly from the browser. It can be added to your phone's Home Screen so it
+launches full-screen like a real app, with its own icon and offline app-shell.
+
+### Host it with GitHub Pages
+
+1. On GitHub, open **Settings → Pages**.
+2. **Source:** *Deploy from a branch*. **Branch:** `main`, **Folder:** `/docs`. Save.
+3. Wait ~1 minute; your app is live at `https://<user>.github.io/app-static/`.
+4. On your iPhone, open that URL in Safari → **Share** → **Add to Home Screen**.
+
+Recent searches and your daily XP target are stored on the device via
+`localStorage`.
+
+## Native iOS app
 
 ## Features
 
@@ -57,10 +81,11 @@ The app talks to the Wise Old Man v2 REST API
 | XP / KC gained over a period | `GET /players/{username}/gained?period=day` |
 | Track / refresh a player | `POST /players/{username}` |
 
-Networking lives in [`WOMService.swift`](WiseOldManStats/WOMService.swift),
-the response models in [`Models.swift`](WiseOldManStats/Models.swift), and the
+Networking lives in [`WOMService.swift`](Shared/WOMService.swift),
+the response models in [`Models.swift`](Shared/Models.swift), and the
 UI in [`ContentView.swift`](WiseOldManStats/ContentView.swift) /
-[`Cards.swift`](WiseOldManStats/Cards.swift).
+[`Cards.swift`](WiseOldManStats/Cards.swift). The same endpoints power the web
+app in [`docs/index.html`](docs/index.html).
 
 ## Project layout
 
