@@ -1,7 +1,7 @@
 // Simple app-shell service worker.
 // Caches the static files so the app opens instantly and works offline;
 // API calls to Wise Old Man always go to the network (never cached).
-const CACHE = "osrs-stats-v1";
+const CACHE = "osrs-stats-v2";
 const ASSETS = [
   "./",
   "./index.html",

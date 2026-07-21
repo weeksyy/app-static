@@ -57,7 +57,8 @@ struct XPProvider: AppIntentTimelineProvider {
             return XPEntry(date: .now, username: "", gainedToday: 0, target: target, placeholder: false, message: "Long-press to set your name")
         }
         do {
-            let gains = try await WOMService.shared.gains(name, period: "day")
+            // Calendar-day gains (local midnight → now) to match WOM's daily XP graph.
+            let gains = try await WOMService.shared.gainsToday(name)
             let gained = max(0, gains.data.skills["overall"]?.experience.gained ?? 0)
             return XPEntry(date: .now, username: name, gainedToday: gained, target: target, placeholder: false, message: nil)
         } catch {

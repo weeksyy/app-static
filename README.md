@@ -79,8 +79,13 @@ The app talks to the Wise Old Man v2 REST API
 | What | Endpoint |
 |------|----------|
 | Player details & latest snapshot | `GET /players/{username}` |
-| XP / KC gained over a period | `GET /players/{username}/gained?period=day` |
+| XP / KC gained over a rolling period | `GET /players/{username}/gained?period=week` |
+| XP gained **today** (calendar day) | `GET /players/{username}/gained?startDate=…&endDate=…` |
 | Track / refresh a player | `POST /players/{username}` |
+
+> **Today vs. last-24h:** the *Day* view uses a custom `startDate`/`endDate`
+> range from local midnight to now — matching WOM's daily XP graph — rather than
+> the rolling-24h `period=day`, which would include yesterday evening's XP.
 
 Networking lives in [`WOMService.swift`](Shared/WOMService.swift),
 the response models in [`Models.swift`](Shared/Models.swift), and the

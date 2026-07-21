@@ -61,7 +61,7 @@ final class PlayerViewModel: ObservableObject {
 
         do {
             async let detailsTask = service.player(name)
-            async let gainsTask = service.gains(name, period: period.rawValue)
+            async let gainsTask = fetchGains(name)
             let (details, gains) = try await (detailsTask, gainsTask)
             self.player = details
             self.gains = gains
@@ -82,12 +82,21 @@ final class PlayerViewModel: ObservableObject {
     func refreshGains() async {
         let name = username.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty, player != nil else { return }
+        self.gains = await fetchGains(name)
+    }
+
+    /// Fetch gains for the selected period. "Day" uses the current calendar day
+    /// (local midnight → now) to match WOM's daily XP graph; other periods use
+    /// the rolling window. Never throws — returns nil if gains are unavailable
+    /// (e.g. no snapshot recorded yet today), so the stats still load.
+    private func fetchGains(_ name: String) async -> PlayerGains? {
         do {
-            self.gains = try await service.gains(name, period: period.rawValue)
-        } catch let error as WOMError {
-            self.errorMessage = error.errorDescription
+            if period == .day {
+                return try await service.gainsToday(name)
+            }
+            return try await service.gains(name, period: period.rawValue)
         } catch {
-            self.errorMessage = error.localizedDescription
+            return nil
         }
     }
 

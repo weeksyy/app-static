@@ -50,6 +50,29 @@ struct WOMService {
         ])
     }
 
+    // GET /players/{username}/gained?startDate=…&endDate=…
+    // Uses a custom date range so "today" means the current calendar day
+    // (local midnight → now), matching WOM's daily XP graph rather than the
+    // rolling-24h `period=day`.
+    func gains(_ username: String, from start: Date, to end: Date) async throws -> PlayerGains {
+        try await get(path: "players/\(encode(username))/gained", query: [
+            URLQueryItem(name: "startDate", value: Self.iso.string(from: start)),
+            URLQueryItem(name: "endDate", value: Self.iso.string(from: end)),
+        ])
+    }
+
+    /// Gains since the start of today (local time) up to now.
+    func gainsToday(_ username: String) async throws -> PlayerGains {
+        let start = Calendar.current.startOfDay(for: Date())
+        return try await gains(username, from: start, to: Date())
+    }
+
+    static let iso: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+
     // POST /players/{username} — tracks a new player or refreshes an existing
     // one from the official hiscores, returning the updated details.
     func update(_ username: String) async throws -> PlayerDetails {

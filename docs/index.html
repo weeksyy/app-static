@@ -178,6 +178,19 @@ async function api(path, method = "GET") {
 }
 const enc = (n) => encodeURIComponent(n.trim());
 
+// Build the gained URL. "Day" uses a custom start/end range for the current
+// calendar day (local midnight → now) to match WOM's daily XP graph, instead of
+// the rolling-24h period=day. Other periods use the rolling window.
+function gainedUrl(name, period) {
+  const base = "/players/" + enc(name) + "/gained";
+  if (period === "day") {
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    return base + "?startDate=" + encodeURIComponent(start.toISOString()) +
+                  "&endDate=" + encodeURIComponent(new Date().toISOString());
+  }
+  return base + "?period=" + period;
+}
+
 // ---- render ----
 function setStatus(html) { els.status.innerHTML = html; }
 function statTable(headers, rows) {
@@ -209,7 +222,7 @@ function render(player, gains, periodLabel) {
     html += `<div class="bar-wrap">
       <div class="bar-top"><span>Daily target</span><span>${reached ? "✅ Reached" : grouped(Math.max(0,target-oGain))+" to go"}</span></div>
       <div class="bar ${reached?"reached":""}"><div style="width:${(pct*100).toFixed(0)}%"></div></div>
-      <div class="sub">${grouped(Math.max(0,oGain))} / ${grouped(target)} XP</div>
+      <div class="sub">${grouped(Math.max(0,oGain))} / ${grouped(target)} XP · today since midnight</div>
     </div>`;
   }
   html += `</div>`;
@@ -248,11 +261,11 @@ async function run() {
     const period = els.period.value;
     const [player, gains] = await Promise.all([
       api("/players/" + enc(name)),
-      api("/players/" + enc(name) + "/gained?period=" + period),
+      api(gainedUrl(name, period)).catch(() => null),
     ]);
     setStatus("");
     remember(player.displayName);
-    render(player, gains, period[0].toUpperCase()+period.slice(1));
+    render(player, gains, period === "day" ? "Today" : period[0].toUpperCase()+period.slice(1));
   } catch (e) {
     if (e.message === "notfound") {
       setStatus('<div class="msg err">Not tracked on Wise Old Man yet. Tap <b>Update</b> to add them from the hiscores.</div>');
