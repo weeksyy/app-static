@@ -33,6 +33,7 @@ struct SummaryCard: View {
     let player: PlayerDetails
     let gains: PlayerGains?
     let period: GainsPeriod
+    var dailyTarget: Int = 1_000_000
 
     private var overall: SkillDetail? { player.latestSnapshot?.data.skills["overall"] }
     private var overallGain: Int { gains?.data.skills["overall"]?.experience.gained ?? 0 }
@@ -46,6 +47,10 @@ struct SummaryCard: View {
                 Metric(label: "EHP", value: player.ehp.oneDecimal)
                 Metric(label: "EHB", value: player.ehb.oneDecimal)
                 Metric(label: "\(period.label) XP", value: overallGain.gainDisplay, highlight: overallGain > 0)
+            }
+
+            if period == .day {
+                DailyTargetBar(gained: overallGain, target: dailyTarget)
             }
 
             if let window = gainsWindow {
@@ -82,6 +87,43 @@ private struct Metric: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+private struct DailyTargetBar: View {
+    let gained: Int
+    let target: Int
+
+    private var progress: Double {
+        guard target > 0 else { return 0 }
+        return min(1, Double(max(0, gained)) / Double(target))
+    }
+    private var reached: Bool { target > 0 && gained >= target }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Daily target")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if reached {
+                    Label("Reached", systemImage: "checkmark.seal.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.green)
+                } else {
+                    Text("\(max(0, target - gained).grouped) to go")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            ProgressView(value: progress)
+                .tint(reached ? .green : .accentColor)
+            Text("\(max(0, gained).grouped) / \(target.grouped) XP")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+        }
     }
 }
 

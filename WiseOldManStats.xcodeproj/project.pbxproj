@@ -6,20 +6,67 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		000000000000000000D0 /* Models.swift in Sources (app) */ = {isa = PBXBuildFile; fileRef = 000000000000000000C0 /* Models.swift */; };
+		000000000000000000D1 /* WOMService.swift in Sources (app) */ = {isa = PBXBuildFile; fileRef = 000000000000000000C1 /* WOMService.swift */; };
+		000000000000000000D2 /* Models.swift in Sources (widget) */ = {isa = PBXBuildFile; fileRef = 000000000000000000C0 /* Models.swift */; };
+		000000000000000000D3 /* WOMService.swift in Sources (widget) */ = {isa = PBXBuildFile; fileRef = 000000000000000000C1 /* WOMService.swift */; };
+		000000000000000000022 /* XPWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 0000000000000000000A1 /* XPWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		000000000000000000021 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0000000000000000000F0;
+			remoteInfo = XPWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0000000000000000000E4 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				000000000000000000022 /* XPWidgetExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0000000000000000000A0 /* WiseOldManStats.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WiseOldManStats.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0000000000000000000A1 /* XPWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = XPWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000C0 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		000000000000000000C1 /* WOMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WOMService.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		AA000000000000000000A9 /* WiseOldManStats */ = {
+		0000000000000000000B0 /* WiseOldManStats */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WiseOldManStats;
 			sourceTree = "<group>";
 		};
+		0000000000000000000B1 /* XPWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = XPWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
-/* Begin PBXFileReference section */
-		AA000000000000000000A5 /* WiseOldManStats.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WiseOldManStats.app; sourceTree = BUILT_PRODUCTS_DIR; };
-/* End PBXFileReference section */
-
 /* Begin PBXFrameworksBuildPhase section */
-		AA000000000000000000A7 /* Frameworks */ = {
+		0000000000000000000E2 /* Frameworks (app) */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0000000000000000000F2 /* Frameworks (widget) */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -29,61 +76,98 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		AA000000000000000000A2 = {
+		000000000000000000002 = {
 			isa = PBXGroup;
 			children = (
-				AA000000000000000000A9 /* WiseOldManStats */,
-				AA000000000000000000A3 /* Products */,
+				000000000000000000004 /* Shared */,
+				0000000000000000000B0 /* WiseOldManStats */,
+				0000000000000000000B1 /* XPWidget */,
+				000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		AA000000000000000000A3 /* Products */ = {
+		000000000000000000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AA000000000000000000A5 /* WiseOldManStats.app */,
+				0000000000000000000A0 /* WiseOldManStats.app */,
+				0000000000000000000A1 /* XPWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		000000000000000000004 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000C0 /* Models.swift */,
+				000000000000000000C1 /* WOMService.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AA000000000000000000A4 /* WiseOldManStats */ = {
+		0000000000000000000E0 /* WiseOldManStats */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA000000000000000000B4 /* Build configuration list for PBXNativeTarget "WiseOldManStats" */;
+			buildConfigurationList = 0000000000000000000E5 /* Build configuration list for PBXNativeTarget "WiseOldManStats" */;
 			buildPhases = (
-				AA000000000000000000A6 /* Sources */,
-				AA000000000000000000A7 /* Frameworks */,
-				AA000000000000000000A8 /* Resources */,
+				0000000000000000000E1 /* Sources */,
+				0000000000000000000E2 /* Frameworks (app) */,
+				0000000000000000000E3 /* Resources */,
+				0000000000000000000E4 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				000000000000000000020 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0000000000000000000B0 /* WiseOldManStats */,
+			);
+			name = WiseOldManStats;
+			productName = WiseOldManStats;
+			productReference = 0000000000000000000A0 /* WiseOldManStats.app */;
+			productType = "com.apple.product-type.application";
+		};
+		0000000000000000000F0 /* XPWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0000000000000000000F4 /* Build configuration list for PBXNativeTarget "XPWidgetExtension" */;
+			buildPhases = (
+				0000000000000000000F1 /* Sources */,
+				0000000000000000000F2 /* Frameworks (widget) */,
+				0000000000000000000F3 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				AA000000000000000000A9 /* WiseOldManStats */,
+				0000000000000000000B1 /* XPWidget */,
 			);
-			name = WiseOldManStats;
-			productName = WiseOldManStats;
-			productReference = AA000000000000000000A5 /* WiseOldManStats.app */;
-			productType = "com.apple.product-type.application";
+			name = XPWidgetExtension;
+			productName = XPWidgetExtension;
+			productReference = 0000000000000000000A1 /* XPWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		AA000000000000000000A1 /* Project object */ = {
+		000000000000000000001 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
-					AA000000000000000000A4 = {
+					0000000000000000000E0 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					0000000000000000000F0 = {
 						CreatedOnToolsVersion = 16.0;
 					};
 				};
 			};
-			buildConfigurationList = AA000000000000000000B1 /* Build configuration list for PBXProject "WiseOldManStats" */;
+			buildConfigurationList = 000000000000000000010 /* Build configuration list for PBXProject "WiseOldManStats" */;
 			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -91,20 +175,28 @@
 				en,
 				Base,
 			);
-			mainGroup = AA000000000000000000A2;
+			mainGroup = 000000000000000000002;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = AA000000000000000000A3 /* Products */;
+			productRefGroup = 000000000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AA000000000000000000A4 /* WiseOldManStats */,
+				0000000000000000000E0 /* WiseOldManStats */,
+				0000000000000000000F0 /* XPWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		AA000000000000000000A8 /* Resources */ = {
+		0000000000000000000E3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0000000000000000000F3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -114,56 +206,62 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		AA000000000000000000A6 /* Sources */ = {
+		0000000000000000000E1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				000000000000000000D0 /* Models.swift in Sources (app) */,
+				000000000000000000D1 /* WOMService.swift in Sources (app) */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0000000000000000000F1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000D2 /* Models.swift in Sources (widget) */,
+				000000000000000000D3 /* WOMService.swift in Sources (widget) */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		000000000000000000020 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0000000000000000000F0 /* XPWidgetExtension */;
+			targetProxy = 000000000000000000021 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
-		AA000000000000000000B2 /* Debug */ = {
+		000000000000000000011 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -187,39 +285,27 @@
 			};
 			name = Debug;
 		};
-		AA000000000000000000B3 /* Release */ = {
+		000000000000000000012 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -243,14 +329,13 @@
 			};
 			name = Release;
 		};
-		AA000000000000000000B5 /* Debug */ = {
+		0000000000000000000E6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -271,14 +356,13 @@
 			};
 			name = Debug;
 		};
-		AA000000000000000000B6 /* Release */ = {
+		0000000000000000000E7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -299,28 +383,83 @@
 			};
 			name = Release;
 		};
+		0000000000000000000F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "XPWidget-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.WiseOldManStats.XPWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0000000000000000000F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "XPWidget-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.WiseOldManStats.XPWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AA000000000000000000B1 /* Build configuration list for PBXProject "WiseOldManStats" */ = {
+		000000000000000000010 /* Build configuration list for PBXProject "WiseOldManStats" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				AA000000000000000000B2 /* Debug */,
-				AA000000000000000000B3 /* Release */,
+				000000000000000000011 /* Debug */,
+				000000000000000000012 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AA000000000000000000B4 /* Build configuration list for PBXNativeTarget "WiseOldManStats" */ = {
+		0000000000000000000E5 /* Build configuration list for PBXNativeTarget "WiseOldManStats" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				AA000000000000000000B5 /* Debug */,
-				AA000000000000000000B6 /* Release */,
+				0000000000000000000E6 /* Debug */,
+				0000000000000000000E7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0000000000000000000F4 /* Build configuration list for PBXNativeTarget "XPWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0000000000000000000F5 /* Debug */,
+				0000000000000000000F6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = AA000000000000000000A1 /* Project object */;
+	rootObject = 000000000000000000001 /* Project object */;
 }

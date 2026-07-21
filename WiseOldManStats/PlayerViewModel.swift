@@ -15,11 +15,39 @@ final class PlayerViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var player: PlayerDetails?
     @Published var gains: PlayerGains?
+    @Published var recentSearches: [String] = []
 
     private let service = WOMService.shared
+    private let recentKey = "recentSearches"
+    private let recentLimit = 8
+
+    init() {
+        recentSearches = UserDefaults.standard.stringArray(forKey: recentKey) ?? []
+    }
 
     var canSearch: Bool {
         !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isLoading
+    }
+
+    // MARK: - Recent searches
+
+    private func remember(_ name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var list = recentSearches.filter { $0.caseInsensitiveCompare(trimmed) != .orderedSame }
+        list.insert(trimmed, at: 0)
+        recentSearches = Array(list.prefix(recentLimit))
+        UserDefaults.standard.set(recentSearches, forKey: recentKey)
+    }
+
+    func selectRecent(_ name: String) {
+        username = name
+        Task { await lookup() }
+    }
+
+    func clearRecents() {
+        recentSearches = []
+        UserDefaults.standard.removeObject(forKey: recentKey)
     }
 
     /// Fetch details and gains together.
@@ -37,6 +65,7 @@ final class PlayerViewModel: ObservableObject {
             let (details, gains) = try await (detailsTask, gainsTask)
             self.player = details
             self.gains = gains
+            remember(details.displayName)
         } catch let error as WOMError {
             self.errorMessage = error.errorDescription
             // Keep any previously loaded player visible on refresh failures.
