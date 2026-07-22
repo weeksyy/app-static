@@ -13,6 +13,9 @@ There are three front-ends in this repo:
   [`scriptable/README.md`](scriptable/README.md).
 - **`WiseOldManStats/` + `XPWidget/`** — a native SwiftUI iOS app with a Home
   Screen widget (requires a Mac + Xcode to build).
+- **`cloudflare-worker/`** — an optional free push-notifications backend (daily
+  reminder/summary, goal-hit alerts, and a birdhouse-run timer). Deploy from a
+  desktop browser; see [`cloudflare-worker/README.md`](cloudflare-worker/README.md).
 
 ## Installable web app (no Mac required)
 

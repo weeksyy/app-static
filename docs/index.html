@@ -153,11 +153,33 @@
     color: var(--ink); border-radius: 12px; padding: 13px; }
   .field input::placeholder { color: #a6a6c0; }
   .divider { height: 1px; background: var(--line); margin: 20px 0 4px; }
+
+  .bell { position: fixed; top: calc(env(safe-area-inset-top) + 12px); right: 14px; z-index: 40;
+    background: rgba(255,255,255,.10); color: #fff; width: 42px; height: 42px; border-radius: 50%;
+    padding: 0; font-size: 18px; box-shadow: none; }
+  .timer-banner { display: none; align-items: center; gap: 10px; background: var(--card); color: var(--ink);
+    border-radius: 14px; padding: 11px 14px; margin-bottom: 14px; font-size: 14px;
+    box-shadow: 0 10px 26px rgba(10,10,40,.28); border-left: 4px solid var(--coral); }
+  .timer-banner.show { display: flex; }
+  .timer-banner b { font-variant-numeric: tabular-nums; }
+  .toggle { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .toggle:last-child { border-bottom: none; }
+  .toggle span { font-size: 14px; }
+  .switch { width: 48px; height: 28px; border-radius: 999px; background: #d6d6e6; position: relative; transition: background .2s; flex: 0 0 auto; }
+  .switch.on { background: var(--purple); }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: left .2s; }
+  .switch.on::after { left: 23px; }
+  .status-line { font-size: 12px; color: var(--ink-soft); margin-top: 8px; min-height: 15px; }
+  .hint { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
 </style>
 </head>
 <body>
+  <button class="bell" id="bell" aria-label="Alerts and timers">🔔</button>
+
   <h1><span class="m">🧙</span> OSRS Stats</h1>
   <div class="tag">Live from the <a href="https://wiseoldman.net" target="_blank" rel="noopener">Wise Old Man</a> API</div>
+
+  <div class="timer-banner" id="timer-banner"></div>
 
   <div class="install-tip" id="install-tip">
     <span>📲</span>
@@ -256,6 +278,57 @@
 
       <div class="row">
         <button class="btn-primary" id="goals-save">Save goals</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS & TIMERS SHEET -->
+  <div class="modal" id="notif-modal">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3>🔔 Alerts &amp; timers</h3>
+        <button id="notif-close" aria-label="Close">✕</button>
+      </div>
+
+      <div class="field">
+        <label>Backend URL (your Cloudflare Worker)</label>
+        <input id="n-backend" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…workers.dev" />
+      </div>
+      <div class="field">
+        <label>RuneScape name (for XP alerts)</label>
+        <input id="n-rsn" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="your RSN" />
+      </div>
+
+      <div class="row"><button class="btn-primary" id="n-enable">Enable notifications</button></div>
+      <div class="status-line" id="n-status"></div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Daily reminder / summary time</label>
+        <input id="n-time" type="time" />
+        <div class="hint">Leave blank for no daily notification.</div>
+      </div>
+
+      <div style="margin-top:10px">
+        <div class="toggle"><span>Daily reminder</span><div class="switch" id="sw-reminder"></div></div>
+        <div class="toggle"><span>Daily XP summary</span><div class="switch" id="sw-summary"></div></div>
+        <div class="toggle"><span>Hit daily XP goal</span><div class="switch" id="sw-goalHit"></div></div>
+        <div class="toggle"><span>Skill goal reached</span><div class="switch" id="sw-skillGoal"></div></div>
+      </div>
+
+      <div class="row"><button class="btn-primary" id="n-save">Save settings</button></div>
+      <div class="row" style="margin-top:8px"><button class="btn-ghost" id="n-test">Send test</button></div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>🐦 Birdhouse run timer</label>
+        <div class="hint" id="bh-status"></div>
+      </div>
+      <div class="row">
+        <button class="btn-primary" id="bh-start">Start 50-min timer</button>
+        <button class="btn-ghost" id="bh-clear">Clear</button>
       </div>
     </div>
   </div>
@@ -616,6 +689,7 @@ function saveGoals() {
   }
   $("goals-modal").classList.remove("show");
   if (lastPlayer) render(lastPlayer, lastGains, lastLabel);
+  if (typeof syncNotifSettings === "function") syncNotifSettings();
 }
 
 // ---- tabs ----
@@ -648,6 +722,139 @@ $("seg-xp").onclick = () => { goalType = "xp"; updateSeg(); };
 
 buildGoalMetricOptions();
 renderRecents();
+
+// ---- Notifications & timers ----
+const PUSH_PUBLIC_KEY = "BDuG7DZZRyeOz-tS1v1wXQXrLlxBTLJqZXNbBEsuie6QgwE-nH4OHgj3Z9tcAISHAuAKm4XJo2qmWVwm5QC85nQ";
+const NOTIF_KEY = "osrs_notif", BH_KEY = "osrs_timer_birdhouse";
+let notif = JSON.parse(localStorage.getItem(NOTIF_KEY) || "null") ||
+  { backend: "", rsn: "", reminderTime: "", enabled: false,
+    alerts: { reminder: true, summary: true, goalHit: true, skillGoal: true } };
+const saveNotif = () => localStorage.setItem(NOTIF_KEY, JSON.stringify(notif));
+const nStatus = (m) => { $("n-status").textContent = m || ""; };
+
+function urlB64ToUint8(base64) {
+  const pad = "=".repeat((4 - base64.length % 4) % 4);
+  const b = (base64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(b), arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+const getSub = async () => (await navigator.serviceWorker.ready).pushManager.getSubscription();
+async function backendPost(path, body) {
+  if (!notif.backend) throw new Error("Set your backend URL first.");
+  const r = await fetch(notif.backend.replace(/\/$/, "") + path, {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error("backend " + r.status);
+  return r.json();
+}
+function settingsPayload() {
+  return {
+    rsn: (notif.rsn || "").trim(), dailyTarget: target, goal: goal,
+    reminderTime: notif.reminderTime || null,
+    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    alerts: notif.alerts,
+  };
+}
+// Re-push settings to the backend when goals/target change (if already enabled).
+async function syncNotifSettings() {
+  if (!notif.enabled || !notif.backend) return;
+  try { const sub = await getSub(); if (sub) await backendPost("/register", { endpoint: sub.endpoint, settings: settingsPayload() }); } catch (e) {}
+}
+
+function openNotif() {
+  $("n-backend").value = notif.backend || "";
+  $("n-rsn").value = notif.rsn || recents[0] || "";
+  $("n-time").value = notif.reminderTime || "";
+  ["reminder", "summary", "goalHit", "skillGoal"].forEach((k) => $("sw-" + k).classList.toggle("on", !!notif.alerts[k]));
+  nStatus(notif.enabled ? "Notifications are on." : "");
+  updateBhStatus();
+  $("notif-modal").classList.add("show");
+}
+
+async function enableNotifications() {
+  notif.backend = $("n-backend").value.trim();
+  notif.rsn = $("n-rsn").value.trim();
+  saveNotif();
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    nStatus("Push isn't available. Open the app from your Home Screen icon, not the Safari tab."); return;
+  }
+  if (!notif.backend) { nStatus("Enter your backend URL first."); return; }
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { nStatus("Permission denied — enable it in iOS Settings for this app."); return; }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(PUSH_PUBLIC_KEY) });
+    const cache = await caches.open("cfg"); await cache.put("/backend-url", new Response(notif.backend));
+    await backendPost("/register", { endpoint: sub.endpoint, settings: settingsPayload() });
+    notif.enabled = true; saveNotif();
+    nStatus("✅ Enabled. Try “Send test”.");
+  } catch (e) { nStatus("Couldn't enable: " + e.message); }
+}
+
+async function saveNotifSettings() {
+  notif.backend = $("n-backend").value.trim();
+  notif.rsn = $("n-rsn").value.trim();
+  notif.reminderTime = $("n-time").value || "";
+  saveNotif();
+  if (!notif.enabled) { nStatus("Saved. Tap “Enable notifications” to start."); return; }
+  try {
+    const sub = await getSub();
+    if (!sub) { nStatus("Tap “Enable notifications” again."); return; }
+    const cache = await caches.open("cfg"); await cache.put("/backend-url", new Response(notif.backend));
+    await backendPost("/register", { endpoint: sub.endpoint, settings: settingsPayload() });
+    nStatus("✅ Settings saved.");
+  } catch (e) { nStatus("Save failed: " + e.message); }
+}
+
+async function sendTest() {
+  try {
+    const sub = await getSub();
+    if (!sub) { nStatus("Enable notifications first."); return; }
+    await backendPost("/test", { endpoint: sub.endpoint });
+    nStatus("Test sent — check your notifications.");
+  } catch (e) { nStatus("Test failed: " + e.message); }
+}
+
+// Birdhouse timer (local countdown + backend push)
+const bhRemaining = () => parseInt(localStorage.getItem(BH_KEY) || "0", 10) - Date.now();
+const fmtDur = (ms) => { ms = Math.max(0, ms); const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000); return m + ":" + String(s).padStart(2, "0"); };
+async function startBirdhouse() {
+  localStorage.setItem(BH_KEY, String(Date.now() + 50 * 60000));
+  updateBhStatus(); updateTimerBanner();
+  try { const sub = await getSub(); if (sub && notif.backend) await backendPost("/timer", { endpoint: sub.endpoint, minutes: 50, label: "🐦 Birdhouses ready" }); } catch (e) {}
+  if (!notif.enabled) nStatus("Timer started (this device). Enable notifications to be pinged when the app is closed.");
+}
+function clearBirdhouse() { localStorage.removeItem(BH_KEY); updateBhStatus(); updateTimerBanner(); }
+function updateBhStatus() {
+  const el = $("bh-status"); if (!el) return;
+  const r = bhRemaining();
+  el.textContent = r > 0 ? "Birdhouses ready in " + fmtDur(r)
+    : "Tap Start when you finish a birdhouse run — you'll be pinged in 50 minutes.";
+}
+function updateTimerBanner() {
+  const b = $("timer-banner"); if (!b) return;
+  const r = bhRemaining();
+  if (r > 0) { b.innerHTML = "🐦 Birdhouses ready in <b>" + fmtDur(r) + "</b>"; b.classList.add("show"); }
+  else if (localStorage.getItem(BH_KEY)) { b.innerHTML = "🐦 <b>Birdhouses ready!</b>"; b.classList.add("show"); }
+  else b.classList.remove("show");
+}
+setInterval(() => { updateTimerBanner(); if ($("notif-modal").classList.contains("show")) updateBhStatus(); }, 1000);
+updateTimerBanner();
+
+$("bell").onclick = openNotif;
+$("notif-close").onclick = () => $("notif-modal").classList.remove("show");
+$("notif-modal").addEventListener("click", (e) => { if (e.target.id === "notif-modal") $("notif-modal").classList.remove("show"); });
+$("n-enable").onclick = enableNotifications;
+$("n-save").onclick = saveNotifSettings;
+$("n-test").onclick = sendTest;
+$("n-time").onchange = () => { notif.reminderTime = $("n-time").value || ""; saveNotif(); };
+["reminder", "summary", "goalHit", "skillGoal"].forEach((k) => {
+  $("sw-" + k).onclick = () => { notif.alerts[k] = !notif.alerts[k]; $("sw-" + k).classList.toggle("on", notif.alerts[k]); saveNotif(); };
+});
+$("bh-start").onclick = startBirdhouse;
+$("bh-clear").onclick = clearBirdhouse;
 
 // ---- PWA: service worker + iOS install hint ----
 if ("serviceWorker" in navigator) {

@@ -1,0 +1,23 @@
+# Cloudflare Worker config (for CLI deploys via `wrangler deploy`).
+# If you deploy through the Cloudflare dashboard instead, you don't need this
+# file — set the same bindings/variables/triggers in the UI (see README.md).
+
+name = "osrs-stats-push"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# KV namespace — create it first (`wrangler kv namespace create SUBS`) and paste
+# the returned id here.
+[[kv_namespaces]]
+binding = "SUBS"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# Public settings (safe to commit). The PRIVATE key is a secret — never put it
+# here; set it with `wrangler secret put VAPID_PRIVATE_JWK`.
+[vars]
+VAPID_PUBLIC = "BDuG7DZZRyeOz-tS1v1wXQXrLlxBTLJqZXNbBEsuie6QgwE-nH4OHgj3Z9tcAISHAuAKm4XJo2qmWVwm5QC85nQ"
+VAPID_SUBJECT = "mailto:tomweeks30@gmail.com"
+
+# Run the cron every minute (timers + daily checks).
+[triggers]
+crons = ["* * * * *"]
