@@ -1,5 +1,5 @@
 // Service worker: offline app-shell cache + Web Push handling.
-const CACHE = "osrs-stats-v6";
+const CACHE = "osrs-stats-v7";
 const ASSETS = [
   "./",
   "./index.html",
