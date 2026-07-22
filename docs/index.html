@@ -77,8 +77,11 @@
   /* hero (player summary) — purple gradient card like the reference */
   .hero { background: linear-gradient(140deg, #7a6bff 0%, #6c5ce7 45%, #4b3fd6 100%);
     color: #fff; box-shadow: 0 18px 40px rgba(76,63,214,.5); }
+  .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
   .hero h2 { color: #fff; }
   .hero .sub { color: rgba(255,255,255,.75); }
+  .hero-goals { background: rgba(255,255,255,.18); color: #fff; border-radius: 12px;
+    padding: 9px 13px; font-size: 14px; flex: 0 0 auto; box-shadow: none; }
   .hero .stat .v { color: #fff; }
   .hero .stat .l { color: rgba(255,255,255,.72); }
   .hero .stat .v.green { color: #9dffce; }
@@ -90,7 +93,7 @@
 
   .grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-top: 16px; }
   .stat { text-align: center; min-width: 0; }
-  .stat .v { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.3px; white-space: nowrap; }
+  .stat .v { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.3px; white-space: nowrap; }
   .stat .l { font-size: 11px; color: var(--ink-soft); margin-top: 3px; }
   .green { color: var(--green); }
 
@@ -104,11 +107,20 @@
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th { color: var(--ink-soft); font-size: 11px; font-weight: 700; text-align: right; padding: 6px 0; text-transform: uppercase; letter-spacing: .03em; }
   th:first-child, td:first-child { text-align: left; }
-  td { padding: 10px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; color: var(--ink); }
+  td { padding: 10px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; color: var(--ink); vertical-align: top; }
   tr:last-child td { border-bottom: none; }
   td.g { color: var(--green); font-weight: 600; }
+  td.num { text-align: right; }
   .lead { color: var(--green); font-weight: 800; }
+  .csub { font-size: 11px; color: var(--ink-soft); font-weight: 400; margin-top: 2px; }
   .scroll { overflow-x: auto; }
+
+  .head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .head-row h3 { margin: 0; }
+  .seg { display: flex; gap: 6px; background: var(--field); border-radius: 12px; padding: 5px; }
+  .seg button { flex: 1; background: transparent; color: var(--ink-soft); padding: 8px 14px; border-radius: 8px; font-size: 14px; }
+  .seg button.on { background: var(--purple); color: #fff; }
+  .seg.mini { width: 148px; }
 
   .msg { background: var(--card); color: var(--ink); border-radius: 16px;
     padding: 14px; margin-top: 16px; font-size: 14px; box-shadow: 0 10px 26px rgba(10,10,40,.28); }
@@ -140,9 +152,6 @@
   .field input, .field select { width: 100%; background: var(--field); border: 1px solid var(--line);
     color: var(--ink); border-radius: 12px; padding: 13px; }
   .field input::placeholder { color: #a6a6c0; }
-  .seg { display: flex; gap: 6px; background: var(--field); border-radius: 12px; padding: 5px; }
-  .seg button { flex: 1; background: transparent; color: var(--ink-soft); padding: 10px; border-radius: 8px; }
-  .seg button.on { background: var(--purple); color: #fff; }
   .divider { height: 1px; background: var(--line); margin: 20px 0 4px; }
 </style>
 </head>
@@ -174,9 +183,6 @@
         <option value="month">Month</option>
         <option value="year">Year</option>
       </select>
-      <button class="btn-ghost" id="goals-btn">🎯 Goals</button>
-    </div>
-    <div class="row">
       <button class="btn-primary" id="lookup">Look up</button>
       <button class="btn-ghost" id="update">Update</button>
     </div>
@@ -201,6 +207,12 @@
       <input id="cname2" type="text" placeholder="Second RuneScape name…" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" />
     </div>
     <div class="row">
+      <select id="cperiod">
+        <option value="day" selected>Day</option>
+        <option value="week">Week</option>
+        <option value="month">Month</option>
+        <option value="year">Year</option>
+      </select>
       <button class="btn-primary" id="compare-btn">Compare</button>
     </div>
     <div id="cstatus"></div>
@@ -266,10 +278,23 @@ const SPECIAL = {
   tzkal_zuk:"TzKal-Zuk", tztok_jad:"TzTok-Jad", kril_tsutsaroth:"K'ril Tsutsaroth",
 };
 const pretty = (k) => SPECIAL[k] || k.split("_").map(w => w[0].toUpperCase()+w.slice(1)).join(" ");
+const cap = (s) => s ? s[0].toUpperCase()+s.slice(1) : s;
 const grouped = (n) => (n ?? 0).toLocaleString("en-US");
-const rankD = (n) => (n == null || n < 0) ? "—" : grouped(n);
-const gainD = (n) => !n ? "—" : (n > 0 ? "+" : "−") + grouped(Math.abs(n));
-const shortXp = (n) => { n = n||0; return n>=1e6 ? (n/1e6).toFixed(1)+"M" : n>=1e3 ? Math.round(n/1e3)+"K" : ""+n; };
+
+// Abbreviate: exact commas under 100k, "830k" up to <1M, "13.0M" for millions.
+function abbr(n) {
+  n = Number(n) || 0;
+  const neg = n < 0, a = Math.abs(n);
+  let s;
+  if (a >= 1e6) s = (a / 1e6).toFixed(1) + "M";
+  else if (a >= 1e5) { const k = Math.round(a / 1e3); s = k >= 1000 ? "1.0M" : k + "k"; }
+  else s = a.toLocaleString("en-US");
+  return (neg ? "−" : "") + s;
+}
+const rankD = (n) => (n == null || n < 0) ? "—" : abbr(n);
+const rankSub = (n) => (n == null || n < 0) ? "" : "#" + abbr(n);
+const gainD = (n) => !n ? "—" : (n > 0 ? "+" : "−") + abbr(Math.abs(n));
+const gainC = (n) => n > 0 ? "+" + abbr(n) : "—";
 
 // OSRS XP table: xp required for each level (index = level, 1..99)
 const XP_TABLE = (() => {
@@ -289,8 +314,8 @@ let target = parseInt(localStorage.getItem(TARGET_KEY) || "1000000", 10);
 let goal = JSON.parse(localStorage.getItem(GOAL_KEY) || "null"); // {metric,type:'level'|'xp',value}
 let goalType = (goal && goal.type) || "level";
 
-// remember the last render so goal edits re-render without a refetch
 let lastPlayer = null, lastGains = null, lastLabel = "";
+let cmpData = null, cmpSkillMode = "level";
 
 function remember(n) {
   recents = [n, ...recents.filter(x => x.toLowerCase() !== n.toLowerCase())].slice(0, 8);
@@ -318,8 +343,7 @@ async function api(path, method = "GET") {
 }
 const enc = (n) => encodeURIComponent(n.trim());
 
-// "Day" = current calendar day (local midnight → now) to match WOM's daily XP
-// graph; other periods use the rolling window.
+// "Day" = current calendar day (local midnight → now) to match WOM's daily XP graph.
 function gainedUrl(name, period) {
   const base = "/players/" + enc(name) + "/gained";
   if (period === "day") {
@@ -329,12 +353,13 @@ function gainedUrl(name, period) {
   }
   return base + "?period=" + period;
 }
+const periodLabel = (p) => p === "day" ? "Today" : cap(p);
 
 // ---- render: single player ----
 function setStatus(html) { els.status.innerHTML = html; }
 function statTable(headers, rows) {
   let h = "<div class='scroll'><table><thead><tr><th></th>" + headers.map(x => "<th>"+x+"</th>").join("") + "</tr></thead><tbody>";
-  h += rows.map(r => "<tr><td>"+r.name+"</td>" + r.cells.map((c,i) => "<td class='"+(i===r.cells.length-1 && r.gain?"g":"")+"'>"+c+"</td>").join("") + "</tr>").join("");
+  h += rows.map(r => "<tr><td>"+r.name+"</td>" + r.cells.map((c,i) => "<td class='num "+(i===r.cells.length-1 && r.gain?"g":"")+"'>"+c+"</td>").join("") + "</tr>").join("");
   return h + "</tbody></table></div>";
 }
 
@@ -349,107 +374,151 @@ function goalBar(s) {
   const reached = cur >= targetXP;
   const title = goal.type === "level"
     ? `Goal · <b>${pretty(goal.metric)} lvl ${goal.value}</b>`
-    : `Goal · <b>${shortXp(goal.value)} ${pretty(goal.metric)} XP</b>`;
+    : `Goal · <b>${abbr(goal.value)} ${pretty(goal.metric)} XP</b>`;
   const right = reached ? "✅ Reached"
     : (goal.type === "level"
-        ? `lvl ${d.level} → ${goal.value} · ${grouped(targetXP - cur)} to go`
-        : `${grouped(targetXP - cur)} XP to go`);
+        ? `lvl ${d.level} → ${goal.value} · ${abbr(targetXP - cur)} to go`
+        : `${abbr(targetXP - cur)} XP to go`);
   return `<div class="bar-wrap">
     <div class="bar-top"><span>${title}</span><span>${right}</span></div>
     <div class="bar ${reached?"reached":""}"><div style="width:${(pct*100).toFixed(1)}%"></div></div>
-    <div class="sub">${grouped(cur)} / ${grouped(targetXP)} XP · ${(pct*100).toFixed(1)}%</div>
+    <div class="sub">${abbr(cur)} / ${abbr(targetXP)} XP · ${(pct*100).toFixed(1)}%</div>
   </div>`;
 }
 
-function render(player, gains, periodLabel) {
-  lastPlayer = player; lastGains = gains; lastLabel = periodLabel;
+function render(player, gains, plabel) {
+  lastPlayer = player; lastGains = gains; lastLabel = plabel;
   const s = player.latestSnapshot?.data || { skills:{}, bosses:{}, activities:{} };
   const overall = s.skills.overall || {};
   const oGain = gains?.data?.skills?.overall?.experience?.gained || 0;
 
   let html = `<div class="card hero">
-    <h2>${player.displayName}</h2><span class="sub">${(player.type||"").replace(/^\w/,c=>c.toUpperCase())}</span>
+    <div class="hero-top">
+      <div><h2>${player.displayName}</h2><div class="sub">${cap(player.type||"")}</div></div>
+      <button class="hero-goals" onclick="openGoals()">🎯 Goals</button>
+    </div>
     <div class="grid">
       <div class="stat"><div class="v">${player.combatLevel}</div><div class="l">Combat</div></div>
-      <div class="stat"><div class="v">${grouped(overall.level)}</div><div class="l">Total level</div></div>
-      <div class="stat"><div class="v">${grouped(overall.experience ?? player.exp)}</div><div class="l">Total XP</div></div>
+      <div class="stat"><div class="v">${abbr(overall.level)}</div><div class="l">Total level</div></div>
+      <div class="stat"><div class="v">${abbr(overall.experience ?? player.exp)}</div><div class="l">Total XP</div></div>
       <div class="stat"><div class="v">${(player.ehp||0).toFixed(1)}</div><div class="l">EHP</div></div>
       <div class="stat"><div class="v">${(player.ehb||0).toFixed(1)}</div><div class="l">EHB</div></div>
-      <div class="stat"><div class="v ${oGain>0?"green":""}">${gainD(oGain)}</div><div class="l">${periodLabel} XP</div></div>
+      <div class="stat"><div class="v ${oGain>0?"green":""}">${gainD(oGain)}</div><div class="l">${plabel} XP</div></div>
     </div>`;
 
   if (els.period.value === "day" && target > 0) {
     const pct = Math.min(1, Math.max(0, oGain) / target);
     const reached = oGain >= target;
     html += `<div class="bar-wrap">
-      <div class="bar-top"><span>Daily XP goal</span><span>${reached ? "✅ Reached" : grouped(Math.max(0,target-oGain))+" to go"}</span></div>
+      <div class="bar-top"><span>Daily XP goal</span><span>${reached ? "✅ Reached" : abbr(Math.max(0,target-oGain))+" to go"}</span></div>
       <div class="bar ${reached?"reached":""}"><div style="width:${(pct*100).toFixed(0)}%"></div></div>
-      <div class="sub" style="color:rgba(255,255,255,.75)">${grouped(Math.max(0,oGain))} / ${grouped(target)} XP · today since midnight</div>
+      <div class="sub" style="color:rgba(255,255,255,.75)">${abbr(Math.max(0,oGain))} / ${abbr(target)} XP · today since midnight</div>
     </div>`;
   }
   html += goalBar(s);
   html += `</div>`;
 
-  // skills
   const sk = SKILL_ORDER.filter(k => s.skills[k]).map(k => {
     const d = s.skills[k], g = gains?.data?.skills?.[k]?.experience?.gained || 0;
-    return { name: pretty(k), gain: g>0, cells: [grouped(d.level), grouped(d.experience), rankD(d.rank), gainD(g)] };
+    return { name: pretty(k), gain: g>0, cells: [abbr(d.level), abbr(d.experience), rankD(d.rank), gainD(g)] };
   });
   html += `<div class="card"><h3>Skills</h3>${statTable(["Level","XP","Rank","Gained"], sk)}</div>`;
 
-  // bosses
   const bosses = Object.values(s.bosses).filter(b => b.kills > 0).sort((a,b)=>b.kills-a.kills).map(b => {
     const g = gains?.data?.bosses?.[b.metric]?.kills?.gained || 0;
-    return { name: pretty(b.metric), gain: g>0, cells: [grouped(b.kills), rankD(b.rank), gainD(g)] };
+    return { name: pretty(b.metric), gain: g>0, cells: [abbr(b.kills), rankD(b.rank), gainD(g)] };
   });
   html += `<div class="card"><h3>Bosses</h3>${bosses.length ? statTable(["Kills","Rank","Gained"], bosses) : "<div class='sub'>No boss kills recorded.</div>"}</div>`;
 
-  // activities
   const acts = Object.values(s.activities).filter(a => a.score > 0).sort((a,b)=>b.score-a.score).map(a => {
     const g = gains?.data?.activities?.[a.metric]?.score?.gained || 0;
-    return { name: pretty(a.metric), gain: g>0, cells: [grouped(a.score), rankD(a.rank), gainD(g)] };
+    return { name: pretty(a.metric), gain: g>0, cells: [abbr(a.score), rankD(a.rank), gainD(g)] };
   });
   html += `<div class="card"><h3>Activities &amp; Clues</h3>${acts.length ? statTable(["Score","Rank","Gained"], acts) : "<div class='sub'>No activity scores recorded.</div>"}</div>`;
 
   els.results.innerHTML = html;
 }
 
-// ---- render: compare ----
+// ---- render: compare (two accounts) ----
 function setC(html) { $("cstatus").innerHTML = html; }
-function cmpRow(label, a, b, fmt) {
-  const f = fmt || grouped;
-  const aCls = a > b ? "lead" : "", bCls = b > a ? "lead" : "";
-  return `<tr><td>${label}</td><td class="${aCls}">${f(a)}</td><td class="${bCls}">${f(b)}</td></tr>`;
+function setCmpMode(m) { cmpSkillMode = m; if (cmpData) renderCompare(); }
+
+function cmpCell(val, sub, lead) {
+  return `<td class="num ${lead?"lead":""}"><div>${val}</div>${sub?`<div class="csub">${sub}</div>`:""}</td>`;
 }
-function renderCompare(p1, p2) {
-  const s1 = p1.latestSnapshot?.data?.skills || {};
-  const s2 = p2.latestSnapshot?.data?.skills || {};
-  const o1 = s1.overall || {}, o2 = s2.overall || {};
-  const nm = (p) => p.displayName;
+function cmpRow(label, a, b, fmt) {
+  const f = fmt || abbr;
+  return `<tr><td>${label}</td>${cmpCell(f(a), null, a>b)}${cmpCell(f(b), null, b>a)}</tr>`;
+}
+function cmpTable(n1, n2, bodyRows) {
+  return `<div class="scroll"><table><thead><tr><th></th><th class="num">${n1}</th><th class="num">${n2}</th></tr></thead><tbody>${bodyRows}</tbody></table></div>`;
+}
 
-  let html = `<div class="card">
-    <h3>Overview</h3>
-    <div class="scroll"><table><thead><tr><th></th><th>${nm(p1)}</th><th>${nm(p2)}</th></tr></thead><tbody>
-      ${cmpRow("Combat", p1.combatLevel, p2.combatLevel, x=>""+x)}
-      ${cmpRow("Total level", o1.level||0, o2.level||0)}
-      ${cmpRow("Total XP", o1.experience ?? p1.exp ?? 0, o2.experience ?? p2.exp ?? 0)}
-      ${cmpRow("EHP", p1.ehp||0, p2.ehp||0, x=>x.toFixed(1))}
-      ${cmpRow("EHB", p1.ehb||0, p2.ehb||0, x=>x.toFixed(1))}
-    </tbody></table></div>
-  </div>`;
+function renderCompare() {
+  const { p1, p2, g1, g2, period } = cmpData;
+  const d1 = p1.latestSnapshot?.data || { skills:{}, bosses:{}, activities:{} };
+  const d2 = p2.latestSnapshot?.data || { skills:{}, bosses:{}, activities:{} };
+  const o1 = d1.skills.overall || {}, o2 = d2.skills.overall || {};
+  const n1 = p1.displayName, n2 = p2.displayName;
 
-  const skillRows = ["overall", ...SKILL_ORDER].map(k => {
-    const a = s1[k]?.experience || 0, b = s2[k]?.experience || 0;
-    return cmpRow(pretty(k), a, b, shortXp);
+  // Overview
+  let html = `<div class="card"><h3>Overview</h3>${cmpTable(n1, n2,
+      cmpRow("Combat", p1.combatLevel, p2.combatLevel, x=>""+x)
+    + cmpRow("Total level", o1.level||0, o2.level||0)
+    + cmpRow("Total XP", o1.experience ?? p1.exp ?? 0, o2.experience ?? p2.exp ?? 0)
+    + cmpRow("EHP", p1.ehp||0, p2.ehp||0, x=>x.toFixed(1))
+    + cmpRow("EHB", p1.ehb||0, p2.ehb||0, x=>x.toFixed(1))
+  )}</div>`;
+
+  // Skills (Level / XP toggle)
+  const mode = cmpSkillMode;
+  const skRows = ["overall", ...SKILL_ORDER].map(k => {
+    const a = (mode==="level" ? d1.skills[k]?.level : d1.skills[k]?.experience) || 0;
+    const b = (mode==="level" ? d2.skills[k]?.level : d2.skills[k]?.experience) || 0;
+    return cmpRow(pretty(k), a, b, mode==="level" ? (x=>""+x) : abbr);
   }).join("");
   html += `<div class="card">
-    <h3>Skills — XP</h3>
-    <div class="scroll"><table><thead><tr><th></th><th>${nm(p1)}</th><th>${nm(p2)}</th></tr></thead><tbody>
-      ${skillRows}
-    </tbody></table></div>
-    <div class="sub" style="margin-top:8px">Higher value shown in green.</div>
-  </div>`;
+    <div class="head-row"><h3>Skills</h3>
+      <div class="seg mini">
+        <button class="${mode==="level"?"on":""}" onclick="setCmpMode('level')">Level</button>
+        <button class="${mode==="xp"?"on":""}" onclick="setCmpMode('xp')">XP</button>
+      </div>
+    </div>${cmpTable(n1, n2, skRows)}</div>`;
 
+  // XP gained over selected period
+  const og1 = g1?.data?.skills?.overall?.experience?.gained || 0;
+  const og2 = g2?.data?.skills?.overall?.experience?.gained || 0;
+  const gainKeys = SKILL_ORDER.filter(k =>
+    (g1?.data?.skills?.[k]?.experience?.gained || 0) > 0 || (g2?.data?.skills?.[k]?.experience?.gained || 0) > 0);
+  let gRows = cmpRow("Overall", og1, og2, gainC)
+    + gainKeys.map(k => cmpRow(pretty(k),
+        g1?.data?.skills?.[k]?.experience?.gained || 0,
+        g2?.data?.skills?.[k]?.experience?.gained || 0, gainC)).join("");
+  html += `<div class="card"><h3>XP gained · ${periodLabel(period)}</h3>${
+    (!g1 && !g2) ? "<div class='sub'>No gains data for this period.</div>" : cmpTable(n1, n2, gRows)
+  }</div>`;
+
+  // Bosses (KC, rank shown small)
+  const bossKeys = [...new Set([...Object.keys(d1.bosses||{}), ...Object.keys(d2.bosses||{})])]
+    .filter(k => (d1.bosses?.[k]?.kills||0) > 0 || (d2.bosses?.[k]?.kills||0) > 0)
+    .sort((x,y) => Math.max(d1.bosses?.[y]?.kills||0, d2.bosses?.[y]?.kills||0) - Math.max(d1.bosses?.[x]?.kills||0, d2.bosses?.[x]?.kills||0));
+  const bRows = bossKeys.map(k => {
+    const a = d1.bosses?.[k]?.kills||0, b = d2.bosses?.[k]?.kills||0;
+    return `<tr><td>${pretty(k)}</td>${cmpCell(abbr(a), rankSub(d1.bosses?.[k]?.rank), a>b)}${cmpCell(abbr(b), rankSub(d2.bosses?.[k]?.rank), b>a)}</tr>`;
+  }).join("");
+  html += `<div class="card"><h3>Bosses — KC</h3>${bossKeys.length ? cmpTable(n1, n2, bRows) : "<div class='sub'>No boss KC to compare.</div>"}</div>`;
+
+  // Activities & clues (score, rank small)
+  const actKeys = [...new Set([...Object.keys(d1.activities||{}), ...Object.keys(d2.activities||{})])]
+    .filter(k => (d1.activities?.[k]?.score||0) > 0 || (d2.activities?.[k]?.score||0) > 0)
+    .sort((x,y) => Math.max(d1.activities?.[y]?.score||0, d2.activities?.[y]?.score||0) - Math.max(d1.activities?.[x]?.score||0, d2.activities?.[x]?.score||0));
+  const aRows = actKeys.map(k => {
+    const a = d1.activities?.[k]?.score||0, b = d2.activities?.[k]?.score||0;
+    return `<tr><td>${pretty(k)}</td>${cmpCell(abbr(a), rankSub(d1.activities?.[k]?.rank), a>b)}${cmpCell(abbr(b), rankSub(d2.activities?.[k]?.rank), b>a)}</tr>`;
+  }).join("");
+  html += `<div class="card"><h3>Activities &amp; Clues</h3>${actKeys.length ? cmpTable(n1, n2, aRows) : "<div class='sub'>No activity scores to compare.</div>"}</div>`;
+
+  html += `<div class="sub" style="text-align:center;margin-top:12px">Higher value shown in green · #rank below each cell</div>`;
   $("cresults").innerHTML = html;
 }
 
@@ -467,13 +536,11 @@ async function run() {
     ]);
     setStatus("");
     remember(player.displayName);
-    render(player, gains, period === "day" ? "Today" : period[0].toUpperCase()+period.slice(1));
+    render(player, gains, periodLabel(period));
   } catch (e) {
-    if (e.message === "notfound") {
-      setStatus('<div class="msg err">Not tracked on Wise Old Man yet. Tap <b>Update</b> to add them from the hiscores.</div>');
-    } else {
-      setStatus('<div class="msg err">' + e.message + '</div>');
-    }
+    setStatus(e.message === "notfound"
+      ? '<div class="msg err">Not tracked on Wise Old Man yet. Tap <b>Update</b> to add them from the hiscores.</div>'
+      : '<div class="msg err">' + e.message + '</div>');
   }
 }
 
@@ -490,15 +557,20 @@ async function update() {
 }
 
 async function compare() {
-  const n1 = $("cname1").value.trim(), n2 = $("cname2").value.trim();
-  if (!n1 || !n2) { setC('<div class="msg">Enter two names to compare.</div>'); return; }
+  const a = $("cname1").value.trim(), b = $("cname2").value.trim();
+  if (!a || !b) { setC('<div class="msg">Enter two names to compare.</div>'); return; }
   setC('<div class="center"><span class="spinner"></span></div>');
   $("cresults").innerHTML = "";
+  const period = $("cperiod").value;
   try {
-    const [p1, p2] = await Promise.all([api("/players/" + enc(n1)), api("/players/" + enc(n2))]);
+    const [p1, p2, g1, g2] = await Promise.all([
+      api("/players/" + enc(a)), api("/players/" + enc(b)),
+      api(gainedUrl(a, period)).catch(() => null), api(gainedUrl(b, period)).catch(() => null),
+    ]);
     setC("");
     remember(p1.displayName); remember(p2.displayName);
-    renderCompare(p1, p2);
+    cmpData = { p1, p2, g1, g2, period };
+    renderCompare();
   } catch (e) {
     setC('<div class="msg err">' + (e.message === "notfound"
       ? "One of those players isn't tracked on Wise Old Man yet. Look them up on the Player tab and tap Update first."
@@ -565,9 +637,9 @@ $("clear-recent").onclick = () => { recents = []; localStorage.removeItem(RECENT
 $("tab-player").onclick = () => showTab("player");
 $("tab-compare").onclick = () => showTab("compare");
 $("compare-btn").onclick = compare;
+$("cperiod").onchange = () => { if (cmpData) compare(); };
 $("cname2").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.target.blur(); compare(); } });
 
-$("goals-btn").onclick = openGoals;
 $("goals-close").onclick = () => $("goals-modal").classList.remove("show");
 $("goals-modal").addEventListener("click", (e) => { if (e.target.id === "goals-modal") $("goals-modal").classList.remove("show"); });
 $("goals-save").onclick = saveGoals;
