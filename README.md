@@ -5,9 +5,12 @@ gained over a day** (or week/month/year), and **boss kill counts & activity
 scores** — all from the [Wise Old Man](https://wiseoldman.net) API, so you don't
 have to open the website.
 
-There are two front-ends in this repo:
+There are three front-ends in this repo:
 
 - **`docs/`** — an installable web app (works on any phone with no Mac needed).
+- **`scriptable/`** — a live Home Screen widget for iPhone via the free
+  [Scriptable](https://scriptable.app) app (no Mac needed). See
+  [`scriptable/README.md`](scriptable/README.md).
 - **`WiseOldManStats/` + `XPWidget/`** — a native SwiftUI iOS app with a Home
   Screen widget (requires a Mac + Xcode to build).
 
@@ -27,6 +30,13 @@ launches full-screen like a real app, with its own icon and offline app-shell.
 
 Recent searches and your daily XP target are stored on the device via
 `localStorage`.
+
+## Home Screen widget without a Mac (Scriptable)
+
+A PWA can't provide a real iOS widget, but the free **Scriptable** app can run a
+JavaScript widget with live data. [`scriptable/OSRS-Daily-XP.js`](scriptable/OSRS-Daily-XP.js)
+is a medium widget showing today's XP as a progress ring toward a daily target.
+Setup instructions are in [`scriptable/README.md`](scriptable/README.md).
 
 ## Native iOS app
 
