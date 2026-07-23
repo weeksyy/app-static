@@ -1,5 +1,5 @@
 // Service worker: offline app-shell cache + Web Push handling.
-const CACHE = "osrs-stats-v8";
+const CACHE = "osrs-stats-v9";
 const ASSETS = [
   "./",
   "./index.html",
@@ -23,19 +23,25 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-  if (url.origin !== location.origin || event.request.method !== "GET") return;
+  const req = event.request;
+  const url = new URL(req.url);
+  if (url.origin !== location.origin || req.method !== "GET") return;
+
+  const isHTML = req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
+  if (isHTML) {
+    // Network-first for the page itself so updates always show when online.
+    event.respondWith(
+      fetch(req)
+        .then((res) => { const c = res.clone(); caches.open(CACHE).then((x) => x.put(req, c)); return res; })
+        .catch(() => caches.match(req).then((r) => r || caches.match("./index.html")))
+    );
+    return;
+  }
+  // Cache-first for static assets (icons, manifest).
   event.respondWith(
-    caches.match(event.request).then((hit) => {
-      if (hit) return hit;
-      return fetch(event.request)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(event.request, copy));
-          return res;
-        })
-        .catch(() => caches.match("./index.html"));
-    })
+    caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+      const c = res.clone(); caches.open(CACHE).then((x) => x.put(req, c)); return res;
+    }))
   );
 });
 
