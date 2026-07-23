@@ -143,8 +143,10 @@
     display: none; align-items: flex-end; justify-content: center; z-index: 50; }
   .modal.show { display: flex; }
   .sheet { background: var(--card); color: var(--ink); border-radius: 24px 24px 0 0;
-    width: 100%; max-width: 640px; padding: 20px 18px calc(env(safe-area-inset-bottom) + 22px);
-    max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+    width: 100%; max-width: 640px;
+    padding: calc(env(safe-area-inset-top) + 20px) 18px calc(env(safe-area-inset-bottom) + 22px);
+    max-height: 85vh; max-height: 85dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .sheet-head { position: sticky; top: calc(env(safe-area-inset-top) - 4px); background: var(--card); z-index: 2; padding-bottom: 4px; }
   .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   .sheet-head h3 { margin: 0; font-size: 18px; color: var(--ink); font-weight: 800; }
   .sheet-head button { background: none; color: var(--ink-soft); font-size: 20px; padding: 4px; }
